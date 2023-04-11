@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>AddNumbers Contract Example</title>
+</head>
+  <body>
+      <h1>AddNumbers Contract Example</h1>
+
+    <button id="connect-metamask-btn">Connect MetaMask</button>
+
+    <h2>Add Two Numbers</h2>
+    <label for="num1-input">Number 1:</label>
+    <input type="number" id="num1-input">
+    <label for="num2-input">Number 2:</label>
+    <input type="number" id="num2-input">
+    <button id="add-btn">Add</button>
+
+    <h2>Result</h2>
+    <div id="result"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <script>
+        // Initialize a web3 provider using MetaMask
+        window.addEventListener('load', () => {
+            let web3 = undefined;
+            let addNumbersContract = undefined;
+            let defaultAccount = undefined;
+
+            const connectMetamaskButton = document.getElementById('connect-metamask-btn');
+            connectMetamaskButton.addEventListener('click', () => {
+                if (typeof window.ethereum !== 'undefined') {
+                    window.ethereum.enable().then(() => {
+                        web3 = new Web3(window.ethereum);
+                        addNumbersContract = new web3.eth.Contract([
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "a",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "b",
+				"type": "uint256"
+			}
+		],
+		"name": "add",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getResult",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+], '0x81D3313e962fEdD976Fd2981E6bAa072948299AF');
+                        web3.eth.getAccounts().then((accounts) => {
+                            defaultAccount = accounts[0];
+                            alert(`Connected to MetaMask account: ${defaultAccount}`);
+                        });
+                    }).catch((error) => {
+                        console.error(error);
+                    });
+                } else {
+                    alert('MetaMask not detected');
+                }
+            });
+
+            const addNumbersButton = document.getElementById('add-btn');
+            addNumbersButton.addEventListener('click', () => {
+                const num1Input = document.getElementById('num1-input');
+                const num2Input = document.getElementById('num2-input');
+                const resultElement = document.getElementById('result');
+
+                addNumbersContract.methods.add(parseInt(num1Input.value), parseInt(num2Input.value)).send({ from: defaultAccount })
+                    .then((receipt) => {
+                        console.log(receipt);
+                        return addNumbersContract.methods.getResult().call();
+                    })
+                    .then((result) => {
+                        resultElement.textContent =`Result: ${result}`;
+
+                         
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                    });
+            });
+        });
+    </script>
+  </body>
+</html>
